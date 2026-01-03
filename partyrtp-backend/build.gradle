@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+dependencies {
+    implementation project(':partyrtp-common')
+
+    compileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
+}
+
+shadowJar {
+    archiveBaseName = 'PartyRTP-Backend'
+    archiveClassifier = ''
+
+    relocate 'com.google.gson', 'net.morphedit.partyrtp.libs.gson'
+    relocate 'org.h2', 'net.morphedit.partyrtp.libs.h2'
+
+    dependencies {
+        include(project(':partyrtp-common'))
+        include(dependency('com.google.code.gson:gson'))
+        include(dependency('com.h2database:h2'))
+    }
+}
+
+build {
+    dependsOn shadowJar
+}

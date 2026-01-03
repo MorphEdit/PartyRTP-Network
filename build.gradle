@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group = 'net.morphedit'
+version = '1.0.0-NETWORK'
+
+subprojects {
+    apply plugin: 'java'
+
+    group = rootProject.group
+    version = rootProject.version
+
+    repositories {
+        mavenCentral()
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+        maven { url = 'https://repo.velocitypowered.com/snapshots/' }
+    }
+
+    dependencies {
+        compileOnly 'org.jetbrains:annotations:24.1.0'
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
