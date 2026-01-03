@@ -1,0 +1,9 @@
+{
+  "id": "partyrtp-velocity",
+  "name": "PartyRTP-Velocity",
+  "version": "1.0.0-NETWORK",
+  "description": "Party RTP system for Velocity proxy",
+  "authors": ["MorphEdit"],
+  "main": "net.morphedit.partyrtp.velocity.PartyRTPVelocity",
+  "dependencies": []
+}

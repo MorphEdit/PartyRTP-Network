@@ -1,0 +1,26 @@
+# Server name - must match the server name in Velocity config
+serverName: "survival"
+
+rtp:
+  provider: COMMAND
+
+  command:
+    # Don't include "/" prefix
+    # Examples:
+    # BetterRTP: "rtp player %player%"
+    # CMI: "cmi rtp %player%"
+    # WildernessTp: "wild %player%"
+    execute: "rtp player %player%"
+
+    # Supported placeholders:
+    # %player% %uuid% %world% %x% %y% %z%
+
+go:
+  # Delay between teleporting each member (in ticks, 20 ticks = 1 second)
+  pullMemberDelayTicks: 2
+
+  # Maximum distance leader can move from RTP landing point before member pull is cancelled
+  leaderMovementThreshold: 10.0
+
+  # Minimum distance for RTP to be considered successful
+  successMinDistance: 64.0

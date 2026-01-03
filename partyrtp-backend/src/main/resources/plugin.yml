@@ -1,0 +1,6 @@
+name: PartyRTP-Backend
+version: 1.0.0-NETWORK
+main: net.morphedit.partyrtp.backend.PartyRTPBackend
+api-version: '1.20'
+author: MorphEdit
+description: Party RTP Backend Agent for Bukkit/Paper servers
