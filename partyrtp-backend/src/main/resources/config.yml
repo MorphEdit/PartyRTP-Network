@@ -1,6 +1,10 @@
 # Server name - must match the server name in Velocity config
 serverName: "survival"
 
+party:
+  requireNear: true
+  nearRadius: 8
+
 rtp:
   provider: COMMAND
 

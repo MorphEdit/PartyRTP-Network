@@ -38,4 +38,12 @@ public class BackendConfig {
     public double getSuccessMinDistance() {
         return plugin.getConfig().getDouble("go.successMinDistance", Constants.DEFAULT_MIN_DISTANCE);
     }
+
+    public boolean isRequireNear() {
+        return plugin.getConfig().getBoolean("party.requireNear", true);
+    }
+
+    public int getNearRadius() {
+        return plugin.getConfig().getInt("party.nearRadius", 8);
+    }
 }

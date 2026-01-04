@@ -73,8 +73,10 @@ public class PluginMessenger {
         UUID leaderUUID = msg.getLeaderUUID();
         UUID token = msg.getToken();
 
+        plugin.getLogger().info("🔵 [RTP_SUCCESS] Received for leader: {}", leaderUUID);
+
         if (!plugin.getGoRequestManager().isValidRequest(leaderUUID, token)) {
-            plugin.getLogger().warn("Received RTP success for invalid/expired request: {}", leaderUUID);
+            plugin.getLogger().warn("❌ Invalid/expired request: {}", leaderUUID);
             return;
         }
 
@@ -87,32 +89,34 @@ public class PluginMessenger {
         });
 
         Set<UUID> members = plugin.getPartyService().getMembers(leaderUUID);
+        plugin.getLogger().info("🔵 [RTP_SUCCESS] Found {} members", members.size());
+
         if (members.isEmpty()) {
-            return; // ไม่มี member ให้จบเลย
+            return;
         }
 
         String targetServer = msg.getServerName();
 
-        // ⚠️ Step 1: ย้าย members ไป server ก่อน
+        // Step 1: ย้าย members ไป server
         for (UUID memberUUID : members) {
             plugin.getServer().getPlayer(memberUUID).ifPresent(member -> {
                 String currentServer = member.getCurrentServer()
                         .map(conn -> conn.getServerInfo().getName())
                         .orElse(null);
 
-                // ถ้าไม่ได้อยู่ server เดียวกัน ให้ส่งไปก่อน
                 if (!targetServer.equals(currentServer)) {
                     plugin.getServer().getServer(targetServer).ifPresent(server -> {
+                        plugin.getLogger().info("🔵 Sending member {} to server {}", member.getUsername(), targetServer);
                         member.createConnectionRequest(server).fireAndForget();
-                        plugin.getLogger().info("Sending member {} to server {}", member.getUsername(), targetServer);
                     });
+                } else {
+                    plugin.getLogger().info("🔵 Member {} already on {}", member.getUsername(), targetServer);
                 }
             });
         }
 
-        // ⚠️ Step 2: รอให้ members เข้า server (3 วินาที)
+        // Step 2: รอ 5 วินาที แล้วส่ง PULL_MEMBERS
         plugin.getServer().getScheduler().buildTask(plugin, () -> {
-            // ตอนนี้ members น่าจะเข้า server แล้ว
             PullMembersMessage pullMsg = new PullMembersMessage(
                     leaderUUID,
                     msg.getServerName(),
@@ -125,14 +129,13 @@ public class PluginMessenger {
                     members.stream().toList()
             );
 
-            // ส่ง PULL_MEMBERS ไป backend
             plugin.getServer().getPlayer(leaderUUID).ifPresent(leader -> {
-                plugin.getLogger().info("Sending PULL_MEMBERS for leader {} with {} members",
+                plugin.getLogger().info("🔵 Sending PULL_MEMBERS for {} with {} members",
                         leader.getUsername(), members.size());
                 sendToBackend(leader, Constants.MSG_PULL_MEMBERS, pullMsg.toJson());
             });
 
-        }).delay(3, java.util.concurrent.TimeUnit.SECONDS).schedule();
+        }).delay(5, java.util.concurrent.TimeUnit.SECONDS).schedule(); // เพิ่มเป็น 5 วินาที
     }
 
     private void handleRTPFailed(String json) {

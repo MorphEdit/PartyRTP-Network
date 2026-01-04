@@ -1,6 +1,7 @@
 package net.morphedit.partyrtp.common.message;
 
 import com.google.gson.Gson;
+import java.util.List;
 import java.util.UUID;
 
 public class RTPRequestMessage {
@@ -11,16 +12,19 @@ public class RTPRequestMessage {
     private String leaderName;
     private String targetServer;
     private long timeoutMillis;
+    private List<String> memberUUIDs; // ⚠️ เพิ่มบรรทัดนี้
 
     public RTPRequestMessage() {}
 
+    // ⚠️ แก้ constructor
     public RTPRequestMessage(UUID token, UUID leaderUUID, String leaderName,
-                             String targetServer, long timeoutMillis) {
+                             String targetServer, long timeoutMillis, List<UUID> memberUUIDs) {
         this.token = token.toString();
         this.leaderUUID = leaderUUID.toString();
         this.leaderName = leaderName;
         this.targetServer = targetServer;
         this.timeoutMillis = timeoutMillis;
+        this.memberUUIDs = memberUUIDs.stream().map(UUID::toString).toList(); // ⚠️ เพิ่มบรรทัดนี้
     }
 
     public String toJson() {
@@ -49,5 +53,11 @@ public class RTPRequestMessage {
 
     public long getTimeoutMillis() {
         return timeoutMillis;
+    }
+
+    // ⚠️ เพิ่ม method นี้
+    public List<UUID> getMemberUUIDs() {
+        if (memberUUIDs == null) return List.of();
+        return memberUUIDs.stream().map(UUID::fromString).toList();
     }
 }

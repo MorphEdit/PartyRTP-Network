@@ -1,0 +1,4 @@
+messages:
+  prefix: "&8[&dPartyRTP&8] "
+  error:
+    membersNotOnSameServer: "&cAll party members must be on the same server before using /prtp go!"
