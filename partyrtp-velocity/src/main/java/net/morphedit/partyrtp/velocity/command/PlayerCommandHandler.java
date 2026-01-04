@@ -25,7 +25,7 @@ public class PlayerCommandHandler {
             case "accept" -> handleAccept(player, args);
             case "leave" -> handleLeave(player);
             case "list" -> handleList(player);
-            case "go" -> handleGo(player);
+            case "go" -> handleGo(player, args);
             default -> sendMessage(player, "&cUnknown command. Use &f/prtp&c for help.");
         }
     }
@@ -210,8 +210,14 @@ public class PlayerCommandHandler {
         }
     }
 
-    private void handleGo(Player player) {
-        new GoCommandHandler(plugin).handle(player);
+    private void handleGo(Player player, String[] args) {
+        // ถ้ามี argument เช่น "/prtp go survival"
+        String targetServer = null;
+        if (args.length > 1) {
+            targetServer = args[1];
+        }
+
+        new GoCommandHandler(plugin).handle(player, targetServer);
     }
 
     private void sendMessage(Player player, String message) {

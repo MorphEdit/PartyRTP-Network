@@ -87,7 +87,32 @@ public class PluginMessenger {
         });
 
         Set<UUID> members = plugin.getPartyService().getMembers(leaderUUID);
-        if (!members.isEmpty()) {
+        if (members.isEmpty()) {
+            return; // ไม่มี member ให้จบเลย
+        }
+
+        String targetServer = msg.getServerName();
+
+        // ⚠️ Step 1: ย้าย members ไป server ก่อน
+        for (UUID memberUUID : members) {
+            plugin.getServer().getPlayer(memberUUID).ifPresent(member -> {
+                String currentServer = member.getCurrentServer()
+                        .map(conn -> conn.getServerInfo().getName())
+                        .orElse(null);
+
+                // ถ้าไม่ได้อยู่ server เดียวกัน ให้ส่งไปก่อน
+                if (!targetServer.equals(currentServer)) {
+                    plugin.getServer().getServer(targetServer).ifPresent(server -> {
+                        member.createConnectionRequest(server).fireAndForget();
+                        plugin.getLogger().info("Sending member {} to server {}", member.getUsername(), targetServer);
+                    });
+                }
+            });
+        }
+
+        // ⚠️ Step 2: รอให้ members เข้า server (3 วินาที)
+        plugin.getServer().getScheduler().buildTask(plugin, () -> {
+            // ตอนนี้ members น่าจะเข้า server แล้ว
             PullMembersMessage pullMsg = new PullMembersMessage(
                     leaderUUID,
                     msg.getServerName(),
@@ -100,26 +125,14 @@ public class PluginMessenger {
                     members.stream().toList()
             );
 
-            String targetServer = msg.getServerName();
-
+            // ส่ง PULL_MEMBERS ไป backend
             plugin.getServer().getPlayer(leaderUUID).ifPresent(leader -> {
+                plugin.getLogger().info("Sending PULL_MEMBERS for leader {} with {} members",
+                        leader.getUsername(), members.size());
                 sendToBackend(leader, Constants.MSG_PULL_MEMBERS, pullMsg.toJson());
             });
 
-            for (UUID memberUUID : members) {
-                plugin.getServer().getPlayer(memberUUID).ifPresent(member -> {
-                    String currentServer = member.getCurrentServer()
-                            .map(conn -> conn.getServerInfo().getName())
-                            .orElse(null);
-
-                    if (!targetServer.equals(currentServer)) {
-                        plugin.getServer().getServer(targetServer).ifPresent(server -> {
-                            member.createConnectionRequest(server).fireAndForget();
-                        });
-                    }
-                });
-            }
-        }
+        }).delay(3, java.util.concurrent.TimeUnit.SECONDS).schedule();
     }
 
     private void handleRTPFailed(String json) {

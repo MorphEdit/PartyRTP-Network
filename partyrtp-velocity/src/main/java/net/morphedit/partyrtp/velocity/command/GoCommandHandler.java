@@ -9,6 +9,7 @@ import net.morphedit.partyrtp.velocity.PartyRTPVelocity;
 import net.morphedit.partyrtp.velocity.util.MessageUtil;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class GoCommandHandler {
     private final PartyRTPVelocity plugin;
@@ -17,7 +18,7 @@ public class GoCommandHandler {
         this.plugin = plugin;
     }
 
-    public void handle(Player player) {
+    public void handle(Player player, String targetServerName) {
         UUID leaderUUID = player.getUniqueId();
 
         if (!plugin.getPartyService().isLeader(leaderUUID)) {
@@ -41,21 +42,52 @@ public class GoCommandHandler {
         }
 
         String currentServer = connection.getServerInfo().getName();
-        String rtpServer = plugin.getConfig().getRTPServer();
 
+        // ถ้าไม่ระบุ server ให้ใช้ default RTP server
+        String rtpServer = targetServerName != null ? targetServerName : plugin.getConfig().getRTPServer();
+
+        // ⚠️ ถ้าไม่ได้อยู่ใน RTP server ให้ส่งไปก่อน
         if (!currentServer.equals(rtpServer)) {
-            sendMessage(player, MessageUtil.replace(
-                    plugin.getConfig().getMessage("errors.notOnRTPServer", "&cYou must be on &f%server% &cto use /prtp go"),
-                    "%server%", rtpServer
-            ));
+            sendToServerThenRTP(player, rtpServer);
             return;
         }
+
+        // ถ้าอยู่ใน RTP server แล้ว ให้ทำ RTP เลย
+        executeRTP(player, rtpServer);
+    }
+
+    private void sendToServerThenRTP(Player player, String targetServer) {
+        UUID leaderUUID = player.getUniqueId();
+
+        plugin.getServer().getServer(targetServer).ifPresentOrElse(
+                server -> {
+                    sendMessage(player, "&aSending you to &f" + targetServer + "&a...");
+
+                    player.createConnectionRequest(server).connect().thenAccept(result -> {
+                        if (result.isSuccessful()) {
+                            // รอ 1 วิให้เข้า server
+                            plugin.getServer().getScheduler().buildTask(plugin, () -> {
+                                if (player.isActive() && player.getCurrentServer().isPresent()) {
+                                    executeRTP(player, targetServer);
+                                }
+                            }).delay(1, TimeUnit.SECONDS).schedule();
+                        } else {
+                            sendMessage(player, "&cFailed to connect to " + targetServer);
+                        }
+                    });
+                },
+                () -> sendMessage(player, "&cServer &f" + targetServer + " &cnot found!")
+        );
+    }
+
+    private void executeRTP(Player player, String rtpServer) {
+        UUID leaderUUID = player.getUniqueId();
 
         long timeoutMillis = plugin.getConfig().getTimeoutSeconds() * 1000L;
         GoRequest request = plugin.getGoRequestManager().createRequest(
                 leaderUUID,
                 player.getUsername(),
-                currentServer,
+                rtpServer,
                 rtpServer,
                 timeoutMillis
         );
@@ -82,7 +114,7 @@ public class GoCommandHandler {
                         sendMessage(p, plugin.getConfig().getMessage("errors.rtpFailed", "&cRTP failed or timed out."))
                 );
             }
-        }).delay(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS).schedule();
+        }).delay(timeoutMillis, TimeUnit.MILLISECONDS).schedule();
     }
 
     private void sendMessage(Player player, String message) {
