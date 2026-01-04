@@ -22,9 +22,10 @@ public class DatabaseManager {
             String dbPath = dataFolder.resolve("partyrtp").toAbsolutePath().toString();
 
             // H2 1.4.200 ยังรองรับ relative path แต่ควรใช้ absolute
-            String url = "jdbc:h2:" + dbPath + ";AUTO_SERVER=TRUE";
+            String url = "jdbc:h2:file:" + dbPath + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1";
 
             System.out.println("Connecting to database at: " + url);
+            System.out.println("Data folder exists: " + Files.exists(dataFolder));
 
             this.pool = JdbcConnectionPool.create(url, "sa", "");
             this.pool.setMaxConnections(10);

@@ -39,13 +39,8 @@ shadowJar {
 
     mergeServiceFiles()
 
-    // !!! สำคัญ: ไม่ต้อง relocate H2 เพราะจะทำให้ internal references พัง
-    // relocate เฉพาะ library ที่อาจ conflict กับ Velocity เท่านั้น
     relocate 'com.google.gson', 'net.morphedit.partyrtp.libs.gson'
     relocate 'org.yaml.snakeyaml', 'net.morphedit.partyrtp.libs.snakeyaml'
-
-    // ไม่ relocate H2!
-    // relocate 'org.h2', 'net.morphedit.partyrtp.libs.h2'
 
     archiveClassifier = ''
     archiveBaseName = 'PartyRTP-Velocity'
@@ -56,6 +51,9 @@ shadowJar {
                 'Multi-Release': 'true'
         )
     }
+
+    // ⚠️ เพิ่มบรรทัดนี้ (ป้องกัน conflict)
+    exclude 'META-INF/velocity-plugin.json'
 }
 
 build {

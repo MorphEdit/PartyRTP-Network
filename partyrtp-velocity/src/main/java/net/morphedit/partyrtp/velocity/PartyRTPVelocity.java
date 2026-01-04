@@ -22,8 +22,8 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 
 @Plugin(
-        id = "partyrtp-velocity",
-        name = "PartyRTP-Velocity",
+        id = "partyrtp",  // ⚠️ ลบ -velocity ออก (ชื่อสั้นกว่า)
+        name = "PartyRTP",
         version = "1.0.0-NETWORK",
         description = "Party RTP system for Velocity proxy",
         authors = {"MorphEdit"}
@@ -80,7 +80,11 @@ public class PartyRTPVelocity {
             this.goRequestManager = new GoRequestManager(this);
             this.pluginMessenger = new PluginMessenger(this);
 
-            server.getCommandManager().register("prtp", new PartyCommand(this));
+            var commandMeta = server.getCommandManager().metaBuilder("prtp")
+                    .aliases("partyrtp")
+                    .plugin(this)
+                    .build();
+            server.getCommandManager().register(commandMeta, new PartyCommand(this));
             server.getEventManager().register(this, new PlayerDisconnectListener(this));
             server.getEventManager().register(this, pluginMessenger);
 
