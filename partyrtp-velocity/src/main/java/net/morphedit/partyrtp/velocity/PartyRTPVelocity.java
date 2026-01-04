@@ -53,29 +53,43 @@ public class PartyRTPVelocity {
     public void onProxyInitialization(ProxyInitializeEvent event) {
         logger.info("Initializing PartyRTP-Velocity...");
 
-        this.config = new VelocityConfig(dataDirectory);
-        config.load();
-
-        this.databaseManager = new DatabaseManager();
         try {
-            databaseManager.connect(dataDirectory);
-            logger.info("Connected to H2 database successfully!");
-        } catch (SQLException e) {
-            logger.error("Failed to connect to database: {}", e.getMessage());
-            return;
+            // สร้าง data directory ก่อน
+            if (!dataDirectory.toFile().exists()) {
+                dataDirectory.toFile().mkdirs();
+                logger.info("Created data directory at: {}", dataDirectory);
+            }
+
+            this.config = new VelocityConfig(dataDirectory);
+            config.load();
+            logger.info("Configuration loaded successfully!");
+
+            this.databaseManager = new DatabaseManager();
+            try {
+                databaseManager.connect(dataDirectory);
+                logger.info("Connected to H2 database successfully!");
+            } catch (SQLException e) {
+                logger.error("Failed to connect to database: {}", e.getMessage());
+                e.printStackTrace();
+                return;
+            }
+
+            this.partyRepository = new PartyRepository(databaseManager);
+            this.partyService = new PartyService(this);
+            this.cooldownManager = new CooldownManager(this);
+            this.goRequestManager = new GoRequestManager(this);
+            this.pluginMessenger = new PluginMessenger(this);
+
+            server.getCommandManager().register("prtp", new PartyCommand(this));
+            server.getEventManager().register(this, new PlayerDisconnectListener(this));
+            server.getEventManager().register(this, pluginMessenger);
+
+            logger.info("PartyRTP-Velocity enabled successfully!");
+
+        } catch (Exception e) {
+            logger.error("Failed to initialize PartyRTP-Velocity: {}", e.getMessage());
+            e.printStackTrace();
         }
-
-        this.partyRepository = new PartyRepository(databaseManager);
-        this.partyService = new PartyService(this);
-        this.cooldownManager = new CooldownManager(this);
-        this.goRequestManager = new GoRequestManager(this);
-        this.pluginMessenger = new PluginMessenger(this);
-
-        server.getCommandManager().register("prtp", new PartyCommand(this));
-        server.getEventManager().register(this, new PlayerDisconnectListener(this));
-        server.getEventManager().register(this, pluginMessenger);
-
-        logger.info("PartyRTP-Velocity enabled successfully!");
     }
 
     @Subscribe

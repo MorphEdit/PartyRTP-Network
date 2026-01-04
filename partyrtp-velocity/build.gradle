@@ -19,14 +19,11 @@ repositories {
 }
 
 dependencies {
-    // Project dependencies
     implementation project(':partyrtp-common')
-
-    // เพิ่ม H2 โดยตรงเพื่อให้แน่ใจว่าจะถูกรวมใน shadowJar
-    implementation 'com.h2database:h2:2.2.224'
+    implementation 'com.h2database:h2:1.4.200'  // เปลี่ยนเป็น 1.4.200
     implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.yaml:snakeyaml:2.2'
 
-    // Velocity API
     compileOnly 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'
     annotationProcessor 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'
 }
@@ -38,36 +35,29 @@ java {
 }
 
 shadowJar {
-    // รวม dependencies ทั้งหมดจาก runtime classpath
     configurations = [project.configurations.runtimeClasspath]
 
-    // IMPORTANT: ต้องรวม resources ของ H2 ด้วย
     mergeServiceFiles()
 
-    // Relocate packages เพื่อหลีกเลี่ยง conflicts
+    // !!! สำคัญ: ไม่ต้อง relocate H2 เพราะจะทำให้ internal references พัง
+    // relocate เฉพาะ library ที่อาจ conflict กับ Velocity เท่านั้น
     relocate 'com.google.gson', 'net.morphedit.partyrtp.libs.gson'
-    relocate 'org.h2', 'net.morphedit.partyrtp.libs.h2'
+    relocate 'org.yaml.snakeyaml', 'net.morphedit.partyrtp.libs.snakeyaml'
 
-    // ตั้งชื่อไฟล์ output
+    // ไม่ relocate H2!
+    // relocate 'org.h2', 'net.morphedit.partyrtp.libs.h2'
+
     archiveClassifier = ''
     archiveBaseName = 'PartyRTP-Velocity'
     archiveVersion = '1.0.0-NETWORK'
 
-    // เพิ่ม manifest
     manifest {
         attributes(
                 'Multi-Release': 'true'
         )
     }
-
-    // ตรวจสอบว่ารวมไฟล์อะไรบ้าง
-    doLast {
-        println "Shadow JAR created: ${archiveFile.get()}"
-        println "File size: ${archiveFile.get().asFile.length() / 1024 / 1024} MB"
-    }
 }
 
-// ให้ build task ใช้ shadowJar แทน jar ปกติ
 build {
     dependsOn shadowJar
 }

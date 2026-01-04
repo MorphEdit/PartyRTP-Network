@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    // เปลี่ยนจาก compileOnly เป็น api
+    // ใช้ H2 เวอร์ชัน 1.4.200 แทน (เวอร์ชันเก่ารองรับ relative path)
+    api 'com.h2database:h2:1.4.200'
     api 'com.google.code.gson:gson:2.10.1'
-    api 'com.h2database:h2:2.2.224'
 
     compileOnly 'org.slf4j:slf4j-api:2.0.9'
 }

@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
     implementation project(':partyrtp-common')
-
     compileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
 }
 
@@ -13,8 +12,8 @@ shadowJar {
     archiveBaseName = 'PartyRTP-Backend'
     archiveClassifier = ''
 
+    // ไม่ relocate H2!
     relocate 'com.google.gson', 'net.morphedit.partyrtp.libs.gson'
-    relocate 'org.h2', 'net.morphedit.partyrtp.libs.h2'
 
     dependencies {
         include(project(':partyrtp-common'))
