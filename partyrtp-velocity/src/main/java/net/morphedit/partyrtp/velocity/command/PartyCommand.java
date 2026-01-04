@@ -22,6 +22,8 @@ public class PartyCommand implements SimpleCommand {
 
     @Override
     public void execute(Invocation invocation) {
+        plugin.getLogger().info("🔧 Command /prtp executed by: " + invocation.source());
+
         if (!(invocation.source() instanceof Player player)) {
             invocation.source().sendMessage(
                     MessageUtil.colorize(plugin.getConfig().getMessage("errors.playersOnly", "&cPlayers only."))
@@ -76,7 +78,11 @@ public class PartyCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return invocation.source().hasPermission("partyrtp.use");
+        // ⚠️ ปล่อยให้ทุกคนใช้ได้ก่อน (debug)
+        return true;
+
+        // เดิม (comment ไว้ก่อน):
+        // return invocation.source().hasPermission("partyrtp.use");
     }
 
     private void showHelp(Player player) {

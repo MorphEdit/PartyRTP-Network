@@ -22,8 +22,8 @@ import java.nio.file.Path;
 import java.sql.SQLException;
 
 @Plugin(
-        id = "partyrtp",  // ⚠️ ลบ -velocity ออก (ชื่อสั้นกว่า)
-        name = "PartyRTP",
+        id = "partyrtp-velocity",
+        name = "PartyRTP-Velocity",
         version = "1.0.0-NETWORK",
         description = "Party RTP system for Velocity proxy",
         authors = {"MorphEdit"}
@@ -80,11 +80,16 @@ public class PartyRTPVelocity {
             this.goRequestManager = new GoRequestManager(this);
             this.pluginMessenger = new PluginMessenger(this);
 
-            var commandMeta = server.getCommandManager().metaBuilder("prtp")
-                    .aliases("partyrtp")
-                    .plugin(this)
-                    .build();
-            server.getCommandManager().register(commandMeta, new PartyCommand(this));
+            try {
+                var meta = server.getCommandManager().metaBuilder("prtp")
+                        .aliases("partyrtp", "party")
+                        .build();
+
+                server.getCommandManager().register(meta, new PartyCommand(this));
+                logger.info("✅ Successfully registered command: /prtp");
+            } catch (Exception e) {
+                logger.error("❌ Failed to register command: /prtp", e);
+            }
             server.getEventManager().register(this, new PlayerDisconnectListener(this));
             server.getEventManager().register(this, pluginMessenger);
 
